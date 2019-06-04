@@ -10,25 +10,9 @@ function msg(title, message){
   ); 
 }
 
-var demoSettings =  {
-  "Deep Auto Fill Chrome Demo" : {
-    "randomLocale" : "de",
-    "fields" : [
-      {
-        "selector" : "#textbox2",
-        "random": "A bunch of random values: {{name.lastName}}, {{name.firstName}} {{name.suffix}}"
-      },
-      {
-        "selector" : "input[name=textbox1]",
-        "random": "A bunch of another random values: {{internet.email}}, {{helpers.createCard}} {{address.secondaryAddress}}",
-        "static" : "A static value"
-      },
-      {
-        "selector" : "#textbox4",
-        "static" : "A static value"
-      } 
-    ]
-  }
+var demoSettings = {
+  "randomLocale": "de",
+  "countProgessed": 0
 }
 
 
@@ -50,8 +34,9 @@ var demoSettings =  {
 
 
 jQuery(function($){
-  console.log('here');
-  var text = localStorage.settings ? localStorage.settings : JSON.stringify(demoSettings, null, '\t');
+  
+  var text = JSON.stringify(Object.assign(demoSettings), null, '\t');
+  
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
   editor.getSession().setMode("ace/mode/javascript");
@@ -63,15 +48,22 @@ jQuery(function($){
         try {
           var data = editor.session.getValue();
           var parsedData = JSON.parse(data); // try it to see if setting are valid
-          localStorage.settings = data;
-
           let saveFile = $("#saveFile")[0].files[0]
+          let saveData = saveFile ? Object.assign(parsedData, { isAutoFill: true }) : Object.assign(parsedData, { isAutoFill: false })
+          localStorage.settings = JSON.stringify(saveData);
           var reader = new FileReader();
           reader.onload = function () {
             localStorage.setItem("file", reader.result);
             chrome.runtime.reload();
           };
-          reader.readAsDataURL(saveFile);
+          
+          if(saveFile){
+            return reader.readAsDataURL(saveFile);
+          }
+          chrome.runtime.reload();
+          
+          
+          
           msg("Settings saved successfully", "☑️"); // error in the above string (in this case, yes)!
         } catch(e) {
           msg("⚠️ Error", e); // error in the above string (in this case, yes)!

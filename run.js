@@ -112,35 +112,66 @@ var randomizeInputValue = function(el){
 chrome.extension.sendRequest({
   "action": "getOptions",
   "args": []
-}, function(response){
-  
+}, function (response) {
+
   let data = fileFillChromeExtensionSettings;
+  let setting = deepAutofillChromeExtensionSettings;
+  let resetMenu = reset;
+
+  if (resetMenu) {
+    localStorage.autoFill = 'true';
+    localStorage.countProgessed = 0;
+    localStorage.action = 1;
+  }
+
+
+  if (!setting.isAutoFill || localStorage.autoFill == 'false') {
+    localStorage.autoFill == 'false'
+    console.log('setting not file or old file is complete')
+    return;
+  }
+  
   var _comma = data.indexOf(","), _b64 = data.substr(0, _comma).indexOf("base64") > -1;
   workbook = XLSX.read(data.substr(_comma + 1), { type: _b64 ? 'base64' : 'binary' });
   
-  
+
   let sheetName = workbook.SheetNames[0]
 
   // Here is your object
   var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
-  let ganbien = localStorage.count+''
-  console.log(localStorage.count);
-  ganbien = parseInt(`${ganbien}`)
-  if(!ganbien){
-    ganbien = 1
+  let excelIndex = localStorage.countProgessed || 0
+  let action = localStorage.action || 1;
+  if (!XL_row_object) {
+    return;
   }
-  ganbien++;
-  //for(var i = ; i < XL_row_object.length; i++){
-let i = ganbien;
-localStorage.count = ganbien
-if(i<(XL_row_object.length-1)){
-  console.log('here');
-    setTimeout(function(index){
-      $("#test2")[0].value = XL_row_object[index]["Number"]
-      setTimeout(()=>{
-        $('#reload1')[0].click()
-      },500)
-    },i * 3000,i)
-  //}
-}
+  
+  if (excelIndex >= XL_row_object.length) {
+    localStorage.autoFill = 'false'
+    return;
+  }
+  excelIndex = parseInt(`${excelIndex}`)
+  
+  setTimeout(function () {
+    console.log('Here');
+    console.log(XL_row_object[excelIndex]);
+    console.log(action);
+    if (action == 1) {
+      $("#txtMaPhieuGui")[0].value = XL_row_object[excelIndex]["Number"]
+      localStorage.action = 2;
+      setTimeout(() => {
+        $("#btnMaVach")[0].click();
+      }, 500)
+    }
+    if (action == 2) {
+      excelIndex++;
+      localStorage.countProgessed = excelIndex;
+      localStorage.action = 1;
+      setTimeout(() => {
+        console.log('submid')
+        $("#btnMaVach")[0].click();
+        // $(":submit")[0].click()
+      }, 500)
+    }
+  }, 3000)
+
 });  

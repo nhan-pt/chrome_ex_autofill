@@ -5,7 +5,6 @@ var core = {
     var file;
     try{
       result = JSON.parse(localStorage.settings);
-      result = result[currentSetupKey];
       file = localStorage.file
     } catch(e){
       result = null;
@@ -13,13 +12,20 @@ var core = {
     return [result, file];
   }
 }
+function getOptions(){
+  console.log('da chay toi day')
+}
  
 
-function fill(tab) {
+function fill(tab, data) {
+  let reset = JSON.parse(localStorage.reset);
+  if(reset){
+  localStorage.reset = 'false';
+}
   chrome.tabs.executeScript(tab, { file: "jquery-3.1.1.min.js" }, function() {
     chrome.tabs.executeScript(tab, { file: "./excel-read.min.js" }, function() {
       chrome.tabs.executeScript(tab, { file: "" }, function() {
-        chrome.tabs.executeScript(tab, {code: "var deepAutofillChromeExtensionSettings = " + JSON.stringify(core.getOptions()[0]) + ";var fileFillChromeExtensionSettings = '" + core.getOptions()[1] + "';"}, function(){
+        chrome.tabs.executeScript(tab, {code: "var deepAutofillChromeExtensionSettings = " + JSON.stringify(core.getOptions()[0]) + ";var fileFillChromeExtensionSettings = '" + core.getOptions()[1] + "'; var reset = "+reset+""}, function(){
           chrome.tabs.executeScript(tab, { file: "run.js" }, function () {
             chrome.notifications.create(
               'name-for-notification',{   
@@ -75,7 +81,7 @@ function getScheme(info,tab) {
 	        contexts:["page"], 
 	        onclick: function(info, tab){
 	          currentSetupKey = key;
-	          fill(info, tab)
+	          fill(tab.id, info)
 	        },
 	        parentId: mainContextMenuItem
 	      });
@@ -91,19 +97,18 @@ function getScheme(info,tab) {
   chrome.contextMenus.create({
     title: "Reset",
     contexts:["page"], 
-    onclick: function(info, tab){
-      localStorage.count = 0;
-      console.log(localStorage.count);
-      // currentSetupKey = null;
-      // fill(info, tab)
+    onclick: function(info, tab){      
+      localStorage.reset = 'true';
+      currentSetupKey = null;
+      fill(tab.id)
     } 
   });
    
   chrome.contextMenus.create({
-    title: "Get Scheme",
+    title: "Cancel",
     contexts:["page"], 
-    onclick: function(info, tab){
-      getScheme(info, tab)
+    onclick: function(info, tab){      
+      localStorage.settings = JSON.stringify({isAutoFill:false})
     } 
   }); 
    
@@ -116,20 +121,12 @@ function getScheme(info,tab) {
     } 
   }); 
 
-
-// chrome.browserAction.onClicked.addListener(
-//   function(tab) {
-//       currentSetupKey = null;
-//       // chrome.tabs.sendMessage(tab.id,{"message":"hide"});
-//       fill(null, tab)
-//   }
-// );
-
-
   chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
 
-    if (tab.url.indexOf("http://localhost") > -1 && 
-        changeInfo.url === undefined){
+    if (tab.url.indexOf("http://localhost:8080") > -1){
+         fill(tabId)
+       }
+    if (tab.url.indexOf("https://evtp.viettelpost.vn") > -1){
       fill(tabId)
     }
   });

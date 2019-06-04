@@ -29,6 +29,7 @@
 		"contextMenus",
 		"storage",
 		"tabs",
+		"https://evtp.viettelpost.vn/*",
 		"http://localhost:8080/*"
 	],
 	"homepage_url": "https://github.com/s-a/deep-autofill-chrome-extension"
