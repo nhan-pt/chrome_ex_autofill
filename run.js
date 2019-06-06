@@ -152,15 +152,13 @@ chrome.extension.sendRequest({
   excelIndex = parseInt(`${excelIndex}`)
   
   setTimeout(function () {
-    console.log('Here');
-    console.log(XL_row_object[excelIndex]);
-    console.log(action);
+    console.log(excelIndex+'/'+XL_row_object.length);
     if (action == 1) {
       $("#txtMaPhieuGui")[0].value = XL_row_object[excelIndex]["Number"]
       localStorage.action = 2;
       setTimeout(() => {
         $("#btnMaVach")[0].click();
-      }, 500)
+      }, 200)
     }
     if (action == 2) {
       excelIndex++;
@@ -170,8 +168,8 @@ chrome.extension.sendRequest({
         console.log('submid')
         $("#btnMaVach")[0].click();
         // $(":submit")[0].click()
-      }, 500)
+      }, 200)
     }
-  }, 3000)
+  }, 1000)
 
 });  
